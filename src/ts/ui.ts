@@ -14,7 +14,7 @@
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
+import axios from 'axios';
 import { skin } from './skin';
 import { devices } from './globals';
 
@@ -23,197 +23,197 @@ let cancelDefault = false;
 
 // Ugly hack for sucky Safari behaviour
 $('body').on('touchmove', (e) => {
-    if(cancelDefault){
+    if (cancelDefault) {
         e.preventDefault();
     }
 });
 $(document).on('touchmove', (e) => {
-    if(cancelDefault){
+    if (cancelDefault) {
         e.preventDefault();
     }
 });
 
 var mainLightbox = {
-	show: function(){
-		$('.lightbox-backdrop').fadeIn();
-		$('.lightbox-window').fadeIn();
-		$('.lightbox-window').css({
-			'margin-top': 0,
-			'position': 'fixed',
-			top: 0
-		})
-		var offset = $('.lightbox-window').offset();
-		$('.lightbox-window').css({
-			'position': 'absolute',
-			'top': offset.top,
-			'margin-top': '100px'
-		});
+    show: function () {
+        $('.lightbox-backdrop').fadeIn();
+        $('.lightbox-window').fadeIn();
+        $('.lightbox-window').css({
+            'margin-top': 0,
+            'position': 'fixed',
+            top: 0
+        })
+        var offset = $('.lightbox-window').offset();
+        $('.lightbox-window').css({
+            'position': 'absolute',
+            'top': offset.top,
+            'margin-top': '100px'
+        });
 
-		var that = this;
-		$('body').on('click', '.lightbox-backdrop', function(){
-			that.hide();
-		});
-	},
-	hide: function(){
-		$('.lightbox-backdrop').fadeOut();
-		$('.lightbox-window').fadeOut();
-	}
+        var that = this;
+        $('body').on('click', '.lightbox-backdrop', function () {
+            that.hide();
+        });
+    },
+    hide: function () {
+        $('.lightbox-backdrop').fadeOut();
+        $('.lightbox-window').fadeOut();
+    }
 };
 
-$(document).ready(function(){
-	if(!document.createEvent){
-		return;
-	}
-	var evt = document.createEvent("Event");
-	evt.initEvent("ui-ready", true, false);
-	window.dispatchEvent(evt);
+$(document).ready(function () {
+    if (!document.createEvent) {
+        return;
+    }
+    var evt = document.createEvent("Event");
+    evt.initEvent("ui-ready", true, false);
+    window.dispatchEvent(evt);
 
-	$('.display-buttons i').on('click', function(){
-		$(this).parent().find('i').removeClass('selected');
-		$(this).addClass('selected');
-	});
+    $('.display-buttons i').on('click', function () {
+        $(this).parent().find('i').removeClass('selected');
+        $(this).addClass('selected');
+    });
 
 
-	var resizeTextarea = function(){
-		$(this).height(1);
-		$(this).height(this.scrollHeight - 1);
-	};
+    var resizeTextarea = function () {
+        $(this).height(1);
+        $(this).height(this.scrollHeight - 1);
+    };
 
-	$('body').on('keydown', 'textarea.inline-editing', resizeTextarea);
-	$('body').on('keyup', 'textarea.inline-editing', resizeTextarea);
-	$('body').on('focus', 'textarea.inline-editing', resizeTextarea);
+    $('body').on('keydown', 'textarea.inline-editing', resizeTextarea);
+    $('body').on('keyup', 'textarea.inline-editing', resizeTextarea);
+    $('body').on('focus', 'textarea.inline-editing', resizeTextarea);
 
-	$('body').on('click', '[data-reload]', function(){
-		setTimeout(function(){
-			window.location.reload();
-		}, 200);
-	});
+    $('body').on('click', '[data-reload]', function () {
+        setTimeout(function () {
+            window.location.reload();
+        }, 200);
+    });
 
-	$('body').on('click', '.lightbox-window .close-lightbox i, .lightbox-window .lightbox-buttons .cancel, .lightbox-window .cancel', function(){
-		ui.hideLightbox();
-	});
+    $('body').on('click', '.lightbox-window .close-lightbox i, .lightbox-window .lightbox-buttons .cancel, .lightbox-window .cancel', function () {
+        ui.hideLightbox();
+    });
 
-	$('.remove-fout').removeClass('remove-fout');
+    $('.remove-fout').removeClass('remove-fout');
 
-	$('body').on('click', '.select-file input[type!="file"], .select-file button, .file-selector', function(e){
-		var inputFile = $(this).parent().find('input[type=file]');
-		if($(this).attr('for')){
-			inputFile = $('#' + $(this).attr('for'));
-		}
+    $('body').on('click', '.select-file input[type!="file"], .select-file button, .file-selector', function (e) {
+        var inputFile = $(this).parent().find('input[type=file]');
+        if ($(this).attr('for')) {
+            inputFile = $('#' + $(this).attr('for'));
+        }
 
-		if(inputFile.length === 0){
-			inputFile = $('input[type=file]');
-		}
-		if($(this).attr('type') === 'text'){
-			if(!$(this).data('changed')){
-				inputFile.click();
-				inputFile.trigger('touchstart');
-			}
-		}
-		else{
-			inputFile.click();
-			inputFile.trigger('touchstart');
-		}
-		$('[data-display-file]').data('changed', true);
+        if (inputFile.length === 0) {
+            inputFile = $('input[type=file]');
+        }
+        if ($(this).attr('type') === 'text') {
+            if (!$(this).data('changed')) {
+                inputFile.click();
+                inputFile.trigger('touchstart');
+            }
+        }
+        else {
+            inputFile.click();
+            inputFile.trigger('touchstart');
+        }
+        $('[data-display-file]').data('changed', true);
 
-		inputFile.on('prettyinput.change', function(){
-			var displayElement = inputFile.parent().parent().find('[data-display-file]');
-			var fileUrl = $(this).val();
-			if(fileUrl.indexOf('fakepath') !== -1){
-				fileUrl = fileUrl.split('fakepath')[1];
-				fileUrl = fileUrl.substr(1);
-				fileUrl = fileUrl.split('.')[0];
-			}
-			if(displayElement.length > 0 && displayElement[0].tagName === 'INPUT'){
-				displayElement.val(fileUrl);
-			}
-			else{
-				displayElement.text(fileUrl);
-			}
-			$(this).unbind('prettyinput.change');
-		});
+        inputFile.on('prettyinput.change', function () {
+            var displayElement = inputFile.parent().parent().find('[data-display-file]');
+            var fileUrl = $(this).val();
+            if (fileUrl.indexOf('fakepath') !== -1) {
+                fileUrl = fileUrl.split('fakepath')[1];
+                fileUrl = fileUrl.substr(1);
+                fileUrl = fileUrl.split('.')[0];
+            }
+            if (displayElement.length > 0 && displayElement[0].tagName === 'INPUT') {
+                displayElement.val(fileUrl);
+            }
+            else {
+                displayElement.text(fileUrl);
+            }
+            $(this).unbind('prettyinput.change');
+        });
 
-		e.preventDefault();
-	});
+        e.preventDefault();
+    });
 
-	$('.search input[type=text]').on('focus', function(){
-		$(this).val(' ');
-	})
+    $('.search input[type=text]').on('focus', function () {
+        $(this).val(' ');
+    })
 
-	$('body').on('click', '.icons-select .current', function(e){
-		e.stopPropagation();
-		var select = $(this).parent();
-		var optionsList = select.children('.options-list');
+    $('body').on('click', '.icons-select .current', function (e) {
+        e.stopPropagation();
+        var select = $(this).parent();
+        var optionsList = select.children('.options-list');
 
-		if($(this).hasClass('editing')){
+        if ($(this).hasClass('editing')) {
             $(this).removeClass('editing');
             $(this).removeClass('slided');
-			optionsList.removeClass('toggle-visible');
-			$(document).unbind('click.close');
-			e.preventDefault();
-			return;
-		}
+            optionsList.removeClass('toggle-visible');
+            $(document).unbind('click.close');
+            e.preventDefault();
+            return;
+        }
 
-		var that = this;
+        var that = this;
         $(that).addClass('editing');
         $(that).addClass('slided');
-		optionsList.addClass('toggle-visible');
-		optionsList.find('.option').on('click', function(){
+        optionsList.addClass('toggle-visible');
+        optionsList.find('.option').on('click', function () {
             $(that).removeClass('editing');
             $(that).removeClass('slided');
-			$(that).data('selected', $(this).data('value'));
+            $(that).data('selected', $(this).data('value'));
             optionsList.removeClass('toggle-visible');
-			select.change();
-		});
+            select.change();
+        });
 
-		$(document).on('click.close', function(e){
+        $(document).on('click.close', function (e) {
             $(that).removeClass('editing');
             $(that).removeClass('slided');
-			optionsList.removeClass('toggle-visible');
+            optionsList.removeClass('toggle-visible');
             $(document).unbind('click.close');
             optionsList.find('.option').unbind('click');
-			e.preventDefault();
-		})
-	});
+            e.preventDefault();
+        })
+    });
 
-	//CSS transitions expansions
+    //CSS transitions expansions
     var animationTimer;
-	$('body').on('click', 'article.preview', function(e){
-		if ($(this).hasClass('expanded')) {
-		    clearTimeout(animationTimer);
-			if(($(this).height() + parseInt($(this).css('padding-top')) + parseInt($(this).css('padding-bottom'))) === this.scrollHeight){
-				$(this).css({ transition: 'none', height: 'auto' });
-			}
-			var setHeight = function () {
-				animationTimer = setTimeout(function () {
-				    $(this).height(this.scrollHeight);
-				    setHeight();
-				}.bind(this), 50);
-			}.bind(this);
-			setHeight();
-		}
-		else{
-			clearTimeout(animationTimer);
-			$(this).removeAttr('style');
-		}
-	});
+    $('body').on('click', 'article.preview', function (e) {
+        if ($(this).hasClass('expanded')) {
+            clearTimeout(animationTimer);
+            if (($(this).height() + parseInt($(this).css('padding-top')) + parseInt($(this).css('padding-bottom'))) === this.scrollHeight) {
+                $(this).css({ transition: 'none', height: 'auto' });
+            }
+            var setHeight = function () {
+                animationTimer = setTimeout(function () {
+                    $(this).height(this.scrollHeight);
+                    setHeight();
+                }.bind(this), 50);
+            }.bind(this);
+            setHeight();
+        }
+        else {
+            clearTimeout(animationTimer);
+            $(this).removeAttr('style');
+        }
+    });
 });
 
 
 
 // Remove event in JQuery
-(function($){
-	$.event.special.removed = {
-		remove: function(o) {
-			if (o.handler) {
-				o.handler()
-			}
-		}
-	}
+(function ($) {
+    $.event.special.removed = {
+        remove: function (o) {
+            if (o.handler) {
+                o.handler()
+            }
+        }
+    }
 })(window.jQuery)
 
 
-var shockwave = function(event, element) {
+var shockwave = function (event, element) {
     var $div = $('<div/>'),
         btnOffset = element.offset(),
         xPos = event.pageX - btnOffset.left,
@@ -226,12 +226,12 @@ var shockwave = function(event, element) {
     $ripple.css("width", element.height());
 
     $div.css({
-            top: yPos - ($ripple.height() / 2),
-            left: xPos - ($ripple.width() / 2)
-        })
+        top: yPos - ($ripple.height() / 2),
+        left: xPos - ($ripple.width() / 2)
+    })
         .appendTo(element);
 
-    window.setTimeout(function() {
+    window.setTimeout(function () {
         $div.remove();
     }, 2000);
 }
@@ -364,7 +364,7 @@ let touchEvents = {
     }
 };
 
-export interface ResizeParams{
+export interface ResizeParams {
     lock?: {
         right?: boolean,
         left?: boolean,
@@ -383,6 +383,23 @@ export interface ResizeParams{
 }
 
 export const ui = {
+    getConf: async function (): Promise<any> {
+        const res = await axios({
+            url: "/assets/theme-conf.js",
+            method: 'get',
+            transformResponse: [data => data]
+        });
+        const text: string = res.data;
+        var temp = null;
+        const js = "temp" + text.substring(text.indexOf("=")).trim();
+        eval(js);
+        return temp;
+    },
+    getCurrentThemeConf: async function (): Promise<any> {
+        const conf = await ui.getConf();
+        const currentTheme = conf.overriding.find(t => t.child === skin.skin);
+        return currentTheme;
+    },
     extendElement: {
         touchEvents: function (element, params?) {
             if (!params) {
@@ -444,32 +461,32 @@ export const ui = {
                     var mouse = { x: e.pageX, y: e.pageY };
                     var resizeLimits = {
                         horizontalRight: element.offset().left + element.outerWidth() + 20 > mouse.x && mouse.x > element.offset().left + element.outerWidth() - 20
-                        && params.lock.horizontal === undefined && params.lock.right === undefined,
+                            && params.lock.horizontal === undefined && params.lock.right === undefined,
 
                         horizontalLeft: element.offset().left + 20 > mouse.x && mouse.x > element.offset().left - 20
-                        && params.lock.horizontal === undefined && params.lock.left === undefined,
+                            && params.lock.horizontal === undefined && params.lock.left === undefined,
 
                         verticalTop: element.offset().top + 20 > mouse.y && mouse.y > element.offset().top - 20
-                        && params.lock.vertical === undefined && params.lock.top === undefined,
+                            && params.lock.vertical === undefined && params.lock.top === undefined,
 
                         verticalBottom: element.offset().top + element.outerHeight() + 20 > mouse.y && mouse.y > element.offset().top + element.outerHeight() - 20
-                        && params.lock.vertical === undefined && params.lock.bottom === undefined
+                            && params.lock.vertical === undefined && params.lock.bottom === undefined
                     };
 
-                    if($(e.target).hasClass('corner')){
-                        if($(e.target).hasClass('ne')){
+                    if ($(e.target).hasClass('corner')) {
+                        if ($(e.target).hasClass('ne')) {
                             resizeLimits.verticalTop = true;
                             resizeLimits.horizontalRight = true;
                         }
-                        if($(e.target).hasClass('nw')){
+                        if ($(e.target).hasClass('nw')) {
                             resizeLimits.verticalTop = true;
                             resizeLimits.horizontalLeft = true;
                         }
-                        if($(e.target).hasClass('se')){
+                        if ($(e.target).hasClass('se')) {
                             resizeLimits.verticalBottom = true;
                             resizeLimits.horizontalRight = true;
                         }
-                        if($(e.target).hasClass('sw')){
+                        if ($(e.target).hasClass('sw')) {
                             resizeLimits.verticalBottom = true;
                             resizeLimits.horizontalLeft = true;
                         }
@@ -505,7 +522,7 @@ export const ui = {
                         if (resizeClasses[cssCls]) {
                             element.addClass(cssCls);
                         }
-                        else{
+                        else {
                             element.removeClass(cssCls);
                         }
                     }
@@ -515,7 +532,7 @@ export const ui = {
                     }
                     element.css({ cursor: cursor });
                     element.find('[contenteditable]').each((index, item) => {
-                        if(!$(item).hasClass('image-container')){
+                        if (!$(item).hasClass('image-container')) {
                             $(item).css({ cursor: cursor });
                         }
                     });
@@ -523,7 +540,7 @@ export const ui = {
                 element.on('mouseout', function (e) {
                     element.unbind('mousemove');
                     let cssClass = '';
-                    if(!element.data('resizing')){
+                    if (!element.data('resizing')) {
                         element.removeClass('top');
                         element.removeClass('left');
                         element.removeClass('bottom');
@@ -538,16 +555,16 @@ export const ui = {
 
             //actual resize
             element.on('mousedown.resize touchstart.resize', function (e) {
-                if(e.target.tagName === 'I' || e.target.tagName === 'BUTTON'){
+                if (e.target.tagName === 'I' || e.target.tagName === 'BUTTON') {
                     return;
                 }
                 if (element.data('lock') === true || element.data('resizing') === true) {
                     return;
                 }
 
-                const borderWidth:number = parseInt(element.css('border-width'));
+                const borderWidth: number = parseInt(element.css('border-width'));
                 const ratio = element.height() / element.width();
-                
+
                 $('body').css({
                     '-webkit-user-select': 'none',
                     '-moz-user-select': 'none',
@@ -561,32 +578,32 @@ export const ui = {
                 };
                 const resizeLimits = {
                     horizontalRight: element.offset().left + element.outerWidth() + 20 > mouse.x && mouse.x > element.offset().left + element.outerWidth() - 20
-                    && params.lock.horizontal === undefined && params.lock.right === undefined,
+                        && params.lock.horizontal === undefined && params.lock.right === undefined,
 
                     horizontalLeft: element.offset().left + 20 > mouse.x && mouse.x > element.offset().left - 20
-                    && params.lock.horizontal === undefined && params.lock.left === undefined,
+                        && params.lock.horizontal === undefined && params.lock.left === undefined,
 
                     verticalTop: element.offset().top + 20 > mouse.y && mouse.y > element.offset().top - 20
-                    && params.lock.vertical === undefined && params.lock.top === undefined,
+                        && params.lock.vertical === undefined && params.lock.top === undefined,
 
                     verticalBottom: element.offset().top + element.outerHeight() + 20 > mouse.y && mouse.y > element.offset().top + element.outerHeight() - 20
-                    && params.lock.vertical === undefined && params.lock.bottom === undefined
+                        && params.lock.vertical === undefined && params.lock.bottom === undefined
                 };
 
-                if($(e.target).hasClass('corner')){
-                    if($(e.target).hasClass('ne')){
+                if ($(e.target).hasClass('corner')) {
+                    if ($(e.target).hasClass('ne')) {
                         resizeLimits.verticalTop = true;
                         resizeLimits.horizontalRight = true;
                     }
-                    if($(e.target).hasClass('nw')){
+                    if ($(e.target).hasClass('nw')) {
                         resizeLimits.verticalTop = true;
                         resizeLimits.horizontalLeft = true;
                     }
-                    if($(e.target).hasClass('se')){
+                    if ($(e.target).hasClass('se')) {
                         resizeLimits.verticalBottom = true;
                         resizeLimits.horizontalRight = true;
                     }
-                    if($(e.target).hasClass('sw')){
+                    if ($(e.target).hasClass('sw')) {
                         resizeLimits.verticalBottom = true;
                         resizeLimits.horizontalLeft = true;
                     }
@@ -619,10 +636,10 @@ export const ui = {
                     $('.main').css({
                         'cursor': element.css('cursor')
                     });
-                    if(devices.isiOS()){
+                    if (devices.isiOS()) {
                         $('body').css({ overflow: 'hidden' });
                     }
-                    
+
                     element.css({ 'transition': 'none' });
 
                     $(window).unbind('mousemove.drag touchmove.start');
@@ -641,13 +658,13 @@ export const ui = {
                             var p = element.offset();
                             if (resizeLimits.horizontalLeft) {
                                 var distance = initial.pos.left - mouse.x;
-                                if(params.moveWithResize === false){
-                                    if(initial.pos.left + distance + initial.size.width > parent.offset().left + parentData.size.width){
+                                if (params.moveWithResize === false) {
+                                    if (initial.pos.left + distance + initial.size.width > parent.offset().left + parentData.size.width) {
                                         distance = (parent.offset().left + parentData.size.width) - initial.pos.left - 1;
                                     }
                                 }
-                                else{
-                                    if(initial.pos.left - distance < parent.offset().left){
+                                else {
+                                    if (initial.pos.left - distance < parent.offset().left) {
                                         distance = -(parent.offset().left - initial.pos.left) + 1;
                                     }
                                     element.offset({
@@ -667,7 +684,7 @@ export const ui = {
                             }
                             if (newWidth > 0) {
                                 element.width(newWidth);
-                                if(params.preserveRatio){
+                                if (params.preserveRatio) {
                                     element.height(newWidth * ratio);
                                 }
                             }
@@ -677,13 +694,13 @@ export const ui = {
                             if (resizeLimits.verticalTop) {
                                 var distance = initial.pos.top - mouse.y;
 
-                                if(params.moveWithResize === false){
-                                    if(initial.pos.top + distance + initial.size.height > parentData.pos.top + parentData.size.height && !(params.extendParent && params.extendParent.bottom)){
+                                if (params.moveWithResize === false) {
+                                    if (initial.pos.top + distance + initial.size.height > parentData.pos.top + parentData.size.height && !(params.extendParent && params.extendParent.bottom)) {
                                         distance = (parent.offset().top + parentData.size.height) - initial.pos.top - 1;
                                     }
                                 }
-                                else{
-                                    if(initial.pos.top - distance < parentData.pos.top){
+                                else {
+                                    if (initial.pos.top - distance < parentData.pos.top) {
                                         distance = -(parent.offset().top - initial.pos.top) + 1;
                                     }
                                     element.offset({
@@ -703,7 +720,7 @@ export const ui = {
                             }
                             if (newHeight > 0) {
                                 element.height(newHeight);
-                                if(params.preserveRatio){
+                                if (params.preserveRatio) {
                                     element.width(newHeight / ratio);
                                 }
                             }
@@ -744,12 +761,12 @@ export const ui = {
                 }
             });
         },
-        draggable: function (element, params: { 
-            lock?: any, 
-            restrict?: any, 
-            tick?: any, 
-            dragOver?: any, 
-            dragOut?: any, 
+        draggable: function (element, params: {
+            lock?: any,
+            restrict?: any,
+            tick?: any,
+            dragOver?: any,
+            dragOut?: any,
             allowDefault?: boolean,
             startDrag?: any,
             mouseMove?: any,
@@ -763,7 +780,7 @@ export const ui = {
             }
 
             element.parents('.lightbox').on('touchmove', (e) => {
-                if(cancelDefault){
+                if (cancelDefault) {
                     e.preventDefault();
                 }
             });
@@ -837,7 +854,7 @@ export const ui = {
 
                     let dragoverred = [];
                     var moveElement = (e) => {
-                        for(let i = 0; i < dropItemsAreas.length; i++){
+                        for (let i = 0; i < dropItemsAreas.length; i++) {
                             dropItemsAreas[i].width = dropItemsAreas[i].item.width();
                             dropItemsAreas[i].height = dropItemsAreas[i].item.height();
                             dropItemsAreas[i].offset = {
@@ -877,7 +894,7 @@ export const ui = {
                         if (params.lock && params.lock.horizontal) {
                             newOffset.left = parseInt(element.offset().left);
                         }
-                        if(!element.data('resizing')){
+                        if (!element.data('resizing')) {
                             element.offset(newOffset);
                         }
 
@@ -889,10 +906,10 @@ export const ui = {
                             let index = dragoverred.indexOf(dropElementInfos.item);
                             if (
                                 dropElementInfos.offset.left < left &&
-                                    dropElementInfos.offset.left + dropElementInfos.width > left
+                                dropElementInfos.offset.left + dropElementInfos.width > left
                                 &&
                                 dropElementInfos.offset.top < top &&
-                                    dropElementInfos.offset.top + dropElementInfos.height > top
+                                dropElementInfos.offset.top + dropElementInfos.height > top
                             ) {
                                 //on check si c bien une function
                                 if (params && typeof params.dragOver === 'function') {
@@ -958,10 +975,10 @@ export const ui = {
                                     elementDistance: elementDistance,
                                     mouse: mouse
                                 });
-                                if(!newData){
+                                if (!newData) {
                                     newData = {};
                                 }
-                                if(newData.elementDistance){
+                                if (newData.elementDistance) {
                                     elementDistance = newData.elementDistance;
                                 }
                             }
@@ -971,7 +988,7 @@ export const ui = {
                                 '-moz-user-select': 'none',
                                 'user-select': 'none'
                             });
-                            if(devices.isiOS()){
+                            if (devices.isiOS()) {
                                 $('body').css({ overflow: 'hidden' });
                             }
                             if (element.css('position') === 'relative') {
@@ -1073,12 +1090,12 @@ export const ui = {
                 resolve();
             });
         });
-        
+
     },
     setStyle: function (stylePath) {
         if ($('#theme').length === 0) {
             let version = 'dev';
-            if((window as any).springboardBuildDate){
+            if ((window as any).springboardBuildDate) {
                 version = (window as any).springboardBuildDate;
                 console.log('Springboard built on ' + version);
             }
@@ -1108,7 +1125,7 @@ export const ui = {
         }
     },
     extendSelector: {
-        touchEvents: function (selector:string, params?) {
+        touchEvents: function (selector: string, params?) {
             if (!params) {
                 params = {};
             }
@@ -1147,11 +1164,11 @@ export const ui = {
     },
     profileColors: {
         relative: 'cyan',
-		teacher: 'green',
-		student: 'orange',
-		personnel: 'purple',
+        teacher: 'green',
+        student: 'orange',
+        personnel: 'purple',
         guest: 'pink',
-        match: function(profile) {
+        match: function (profile) {
             if (profile) {
                 if (profile instanceof Array) {
                     return this[profile[0].toLowerCase()];
@@ -1163,7 +1180,7 @@ export const ui = {
     }
 };
 
-if(!(window as any).entcore){
-	(window as any).entcore = {};
+if (!(window as any).entcore) {
+    (window as any).entcore = {};
 }
 (window as any).entcore.ui = ui;
