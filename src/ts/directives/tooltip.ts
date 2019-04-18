@@ -120,7 +120,13 @@ function tooltipLink($compile: any, scope: any, element: any, attributes: { [nam
             timeout = false;
         });
     });
-
+    //on scroll remove tooltip
+    $(window).scroll(function() {
+        tip && tip.fadeOut(200, function () {
+            $(this).remove();
+        })
+    });
+    //on destroy remove tooltip
     scope.$on("$destroy", function () {
         targetElement.off();
         tip && tip.fadeOut(200, function () {
