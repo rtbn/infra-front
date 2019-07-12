@@ -78,6 +78,43 @@ describe('onPressDelete', () => {
         expect({editZone, range}).toBeEditedAs(`<div>test‸</div>`);
         expect(event.preventDefault).toHaveBeenCalled();
     });
+
+    it(`should empty the current div
+            when the current div have the data-editor-fully-removable attribute`, () => {
+        let {editZone, range, event} = pressDelete('<div>test1</div><div data-editor-fully-removable="true">test2←</div>', selection);
+        expect({editZone, range}).toBeEditedAs(`<div>test1</div><div>&#8203;‸</div>`);
+        expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it(`should empty the parent div
+            when the parent div have the data-editor-fully-removable attribute`, () => {
+        let {editZone, range, event} = pressDelete('<div>test1</div><div data-editor-fully-removable="true"><span>test2←</span></div>', selection);
+        expect({editZone, range}).toBeEditedAs(`<div>test1</div><div>&#8203;‸</div>`);
+        expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it(`should empty the div
+            when the div have the data-editor-fully-removable attribute`, () => {
+        let {editZone, range, event} = pressDelete('<div>test1</div><div data-editor-fully-removable="true"><span>test2</span></div>',
+            selection,
+            '[data-editor-fully-removable]');
+        expect({editZone, range}).toBeEditedAs(`<div>test1</div><div>&#8203;‸</div>`);
+        expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it(`should empty the div
+            when the div have the data-editor-fully-removable attribute`, () => {
+        let {editZone, range, event} = pressDelete('<div>test1</div><div data-editor-fully-removable="true">test2</div><div>←test3</div>', selection);
+        expect({editZone, range}).toBeEditedAs(`<div>test1</div><div>‸test3</div>`);
+        expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it(`should empty the div
+            when the div have the data-editor-fully-removable attribute`, () => {
+        let {editZone, range, event} = pressDelete('<div>test1</div><div data-editor-fully-removable="true">test2</div><div>←</div>', selection);
+        expect({editZone, range}).toBeEditedAs(`<div>test1</div><div>‸</div>`);
+        expect(event.preventDefault).toHaveBeenCalled();
+    });
 });
 
 const pressDelete = pressFactory('←',

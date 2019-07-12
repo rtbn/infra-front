@@ -1,14 +1,18 @@
 import { $ } from "../libs";
 import { findClosestHTMLElement, findLatestChildTextNode, isHTMLBlockElement, isHTMLElement } from './selection';
 
-export function findClosestBlockElement(currentNode: Node, root: Node): Node {
+function findClosestElementWithPredicate(currentNode: Node, root: Node, predicate: (n: Node) => boolean): Node {
     let target;
     while ((currentNode = findClosestHTMLElement(currentNode)) && currentNode !== root && !target) {
-        if (isHTMLBlockElement(currentNode)) {
+        if (predicate(currentNode)) {
             target = currentNode;
         }
     }
     return target;
+}
+
+export function findClosestBlockElement(currentNode: Node, root: Node): Node {
+    return findClosestElementWithPredicate(currentNode, root, isHTMLBlockElement);
 }
 
 function trim(text: string): string {
@@ -17,6 +21,19 @@ function trim(text: string): string {
 
 function trimBeforeIndex(text: string, index: number): string {
     return trim(text.substring(0, index)) + text.substring(index);
+}
+
+export const fullyRemovableAttribute = 'data-editor-fully-removable';
+
+function isFullyRemovableElement(node: Node): boolean {
+    if (isHTMLElement(node)) {
+        return node.getAttribute(fullyRemovableAttribute) === 'true';
+    }
+    return false;
+}
+
+function findClosestFullyRemovableElement(currentNode: Node, root: Node): Node {
+    return findClosestElementWithPredicate(currentNode, root, isFullyRemovableElement);
 }
 
 function trimNodeBeforeRange(node: Node, range: Range): { node: Node, range: Range } {
@@ -65,6 +82,23 @@ export function onPressDelete(event, selection, editorInstance, editZone) {
         } else {
             if (startContainer !== editZone.get(0)) {
                 let blockElement: Node;
+
+                if (newRange.startContainer === newRange.endContainer && newRange.startOffset === newRange.endOffset) {
+                    const removableElement = isFullyRemovableElement(startContainer) ? startContainer : findClosestFullyRemovableElement(startContainer, editZone.get(0));
+                    if (removableElement) {
+                        const divToReplaceRemovableElement = document.createElement('div');
+                        const textNode = document.createTextNode('\u200b');
+                        divToReplaceRemovableElement.appendChild(textNode);
+                        removableElement.parentElement.insertBefore(divToReplaceRemovableElement, removableElement);
+                        removableElement.parentElement.removeChild(removableElement);
+
+                        newRange = document.createRange();
+                        newRange.setStart(textNode, 1);
+                        newRange.setEnd(textNode, 1);
+
+                        event.preventDefault();
+                    }
+                }
                 if (isHTMLBlockElement(startContainer)) {
                     blockElement = startContainer;
                 } else {
@@ -72,7 +106,13 @@ export function onPressDelete(event, selection, editorInstance, editZone) {
                 }
                 if (blockElement && blockElement.previousSibling) {
                     const previousElement = blockElement.previousSibling;
-                    if ((trim(blockElement.textContent).length === 0) || (
+                    if(isFullyRemovableElement(previousElement) &&
+                        newRange.startOffset === 0 &&
+                        (newRange.startContainer === newRange.endContainer) &&
+                        (newRange.startOffset === newRange.endOffset)) {
+                        previousElement.parentNode.removeChild(previousElement);
+                        event.preventDefault();
+                    } else if ((trim(blockElement.textContent).length === 0) || (
                         isHTMLElement(blockElement) &&
                         blockElement.querySelector('.image-container') &&
                         trim(blockElement.textContent).replace(/\n\r/g, '').trim().length === 0
@@ -101,7 +141,7 @@ export function onPressDelete(event, selection, editorInstance, editZone) {
                 }
             }
         }
-        return newRange? newRange : range;
+        return newRange ? newRange : range;
     });
     selection.removeAllRanges();
     ranges.forEach(range => selection.addRange(range));
