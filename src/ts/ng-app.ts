@@ -2452,6 +2452,11 @@ module.controller('Admin', ['$scope', function($scope){
 	$scope.scrollUp = ui.scrollToTop;
 }]);
 
+
+module.config(['$locationProvider', function($locationProvider) {
+	$locationProvider.hashPrefix('');
+}]);
+
 $(document).ready(function(){
 	setTimeout(function(){
 		//routing
