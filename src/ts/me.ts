@@ -7,6 +7,7 @@ import { notify } from './notify';
 import { Behaviours } from './behaviours';
 
 export class Me{
+    static keepOpenOnLogout = false;
     static preferences: any;
     static loading: any[] = [];
     private static eventer: Eventer = new Eventer();
@@ -138,7 +139,7 @@ if(!(XMLHttpRequest.prototype as any).baseSend && !(window as any).pupetterMode)
                         <div class="content">
                             <h2>${ idiom.translate('disconnected.title') }</h2>
                             <div class="warning">${ idiom.translate('disconnected.warning') }</div>
-                            <a class="button right-magnet" href="${checkedUrl}" target="_blank">${ idiom.translate('disconnected.redirect') }</a>
+                            <a class="button right-magnet" href="${checkedUrl}" ${Me.keepOpenOnLogout?'target="_blank"':''}>${ idiom.translate('disconnected.redirect') }</a>
                         </div>
                         <div class="background"></div>
                     </section>
