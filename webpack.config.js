@@ -14,6 +14,13 @@ module.exports = {
         modulesDirectories: ['node_modules'],
         extensions: ['', '.ts', '.js']
     },
+    externals: {
+        "jquery": "jQuery",
+        "underscore": "_",
+        "angular": "angular",
+        "moment" : "moment",
+        "rxjs": "Rx",
+    },
     devtool: "source-map",
     module: {
         loaders: [

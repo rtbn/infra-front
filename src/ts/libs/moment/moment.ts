@@ -11,7 +11,12 @@ export const frLocales = {
     }
 };
 
+/** 
+ * Note JCBE 2021-04-15 
+ * Commented 1 line below => the lib is loaded with moment+locales
+ * 
 require('moment/min/locales');
+*/
 
 if (!window.entcore) {
     window.entcore = {};
