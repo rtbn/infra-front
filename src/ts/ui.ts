@@ -1145,7 +1145,7 @@ export const ui = {
                 type: 'text/css',
                 href: stylePath + 'theme.css?version=' + version,
                 id: 'theme'
-            });
+            }).attr("crossorigin", "anonymous");
             var favicon = $('<link>', {
                 rel: 'icon',
                 href: skin.basePath + 'img/illustrations/favicon.ico'
