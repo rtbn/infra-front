@@ -12,6 +12,7 @@ import { Me } from '../me';
 import { DocumentsListModel } from '../workspace/model';
 import { ui } from '../ui';
 import { VideoUploadService } from '../video/VideoUploadService';
+import { notify } from '../notify';
 
 export interface VideoDelegate {
     title?: string
@@ -280,7 +281,6 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
             element.on('drop', async (e) => {
                 element.find('.drop-zone').removeClass('dragover');
                 e.preventDefault();
-//FIXME required ?                template.open(MAIN_CONTAINER, TEMPLATE_LOADING);
                 scope.importFiles(e.originalEvent.dataTransfer.files);
             });
 
@@ -590,26 +590,26 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
 
             const cancelAll = () => {
                 scope.display.editedDocument = undefined;
-
                 scope.upload.documents.forEach(doc => {
-                    if (doc.uploadStatus === "loaded") {
-                        doc.delete();
-                    }
-                    if (doc.uploadStatus === "loading") {
-                        doc.abort();
-                    }
+                    cancelDoc(doc);
                 });
                 scope.upload.documents = [];
                 scope.upload.loading = [];
             }
 
-            scope.abortOrDelete = (doc: Document) => {
+            const cancelDoc = (doc: Document) => {
                 if (doc.uploadStatus === "loaded") {
-                    doc.delete();
+                    return doc.delete();
                 }
                 if (doc.uploadStatus === "loading") {
-                    doc.abort();
+                    // Video uploads cannot be aborted.
+                    //doc.abort();
                 }
+                return Promise.resolve();
+            }
+            
+            scope.abortOrDelete = (doc: Document) => {
+                cancelDoc( doc );
                 const index = scope.upload.documents.indexOf(doc);
                 scope.upload.documents.splice(index, 1);
                 if (!scope.upload.documents.length) {
@@ -636,6 +636,7 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
                     await scope.listFrom('appDocuments');
                 scope.showHeader(HEADER_BROWSE);
                 scope.$apply();
+                notify.success("video.file.saved");
             }
 
             scope.cancelUpload = () => {
@@ -647,15 +648,31 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
                 if (!files) {
                     files = scope.upload.files;
                 }
-                // Only 1 video can be uploaded at a time by 2021-04, but we treat it like there was many.
+                
                 for (var i = 0; i < files.length; i++) {
-					// let doc = new Document();
-					// scope.upload.documents.push(doc);
-                    VideoUploadService.upload( files[i], files[i].name )
-                    .then( () => scope.$apply() )
+					const doc = new Document();
+					scope.upload.documents.push(doc);
+                    doc.fromFile( files[i] );
+                    // Upload via the video service, not the workspace service.
+                    doc.uploadStatus = "loading";
+                    VideoUploadService.upload( files[i], doc.name, false )
+                    .then( (result) => {
+                        if( result.data ) {
+                            doc.uploadStatus = "loaded";
+                            doc._id = result.data.videoworkspaceid;
+                            if( doc.metadata ) {
+                                doc.metadata.size = result.data.videosize;
+                            }
+                        }
+                     })
                     .catch( err => {
+                        doc.uploadStatus = "failed";
                         console.warn(err);
+                    })
+                    .finally( () => {
+                        scope.$apply();
                     });
+                    break; // Only 1 video can be uploaded at a time.
                 }
                 scope.upload.files = undefined;
                 template.open(MAIN_CONTAINER, TEMPLATE_LOADING);

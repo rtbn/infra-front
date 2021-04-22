@@ -287,7 +287,7 @@ export class VideoRecorder {
         if (!filename) {
             filename = "video-" + this.id;
         }
-        new VideoUploadService().upload( this.getBuffer(), filename, recordTime )
+        new VideoUploadService().upload( this.getBuffer(), filename, true, recordTime )
         .then( statusRes => {callback && callback(statusRes);} )
         .catch( () => {errCallback && errCallback();} );
     }

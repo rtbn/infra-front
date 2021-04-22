@@ -1,9 +1,20 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { VideoEventTrackerService } from "./VideoEventTrackerService";
 
 export type UploadResult = {
-    processId:string, 
-    state:"running"|"succeed";
+    data:{
+        processid:string;
+        state:"running"|"succeed";
+        /** ID of the video file. */
+        videoid?: string;
+        /** size of the video, in bytes. */
+        videosize:number;
+        /** ID of the video document in Workspace. */
+        videoworkspaceid: string;
+    }
+    status: number;
+    statusText: string;
+    headers: any;
 };
 
 /**
@@ -12,7 +23,7 @@ export type UploadResult = {
  * The server will process each uploaded video and convert them to a streamable format.
  */
 export class VideoUploadService {
-    public async upload(file:Blob, filename:string, duration?:string|number):Promise<UploadResult> {
+    public async upload(file:Blob, filename:string, captation:boolean, duration?:string|number):Promise<UploadResult> {
         if (!file) {
             throw new Error("Invalid video file.");
         }
@@ -24,13 +35,14 @@ export class VideoUploadService {
         let formData = VideoEventTrackerService.asFormData();
         formData.append("file", file, filename);
         formData.append("weight", ''+file.size );
+        formData.append("captation", ''+captation);
         if( duration ) {
             formData.append("duration", ''+duration);
         }
         const uploadRes = await axios.post("/video/upload", formData);
         if(uploadRes.status==202){
             const id = uploadRes.data.processid;
-            console.log("[VideoRecorder] start fetching status for :", id, uploadRes.data);
+            console.log("[VideoUploadService] start fetching status for :", id, uploadRes.data);
             let status = uploadRes.status;
             let statusRes = null;
             let seconds = 1;
