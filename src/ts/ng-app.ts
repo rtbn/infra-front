@@ -36,7 +36,7 @@ import { NgModelExtend } from './directives';
 import { initThemeDirective } from './theme';
 import {VideoController} from "./video/VideoController";
 import { VideoEventTrackerService } from './video/VideoEventTrackerService';
-import { VideoService } from './video/VideoUploadService';
+import { VideoUploadService } from './video/VideoUploadService';
 
 var module = angular.module('app', ['ngSanitize', 'ngRoute'], ['$interpolateProvider', function($interpolateProvider) {
 		$interpolateProvider.startSymbol('[[');
@@ -2480,8 +2480,8 @@ $(document).ready(function(){
             if (window.entcore.ng.init) {
 				window.entcore.ng.controllers.push(VideoController);
 
-				window.entcore.ng.services.push( ng.service("VideoService", [VideoService]) );
-				window.entcore.ng.services.push( ng.service("VideoEventTrackerService", [VideoEventTrackerService]) );
+				window.entcore.ng.services.push( ng.service("VideoUploadService", [VideoUploadService]) );
+				window.entcore.ng.services.push( ng.service("VideoEventTracker", [VideoEventTrackerService]) );
                 window.entcore.ng.init(module);
 		    }
 			model.build();

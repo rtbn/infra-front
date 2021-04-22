@@ -214,7 +214,10 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
             }
 
             scope.getClassOf = function( h: Header ): any {
-                return (h !== HEADER_RECORD) ? "" : "beta-feature";
+                return {
+                    "beta-feature": (h===HEADER_RECORD || h===HEADER_UPLOAD),
+                    "reduced-font-size": true
+                }
             }
 
             scope.$on("video-upload", function (event, docId) {
@@ -229,7 +232,7 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
                 if (scope.delegate && scope.delegate.title) {
                     return scope.delegate.title;
                 } else {
-                    return idiom.translate("video.embedder.title");
+                    return idiom.translate("editor.option.embed");
                 }
             }
 
@@ -253,19 +256,11 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
             });
 
             scope.openCompression = (doc: Document) => {
-                if (!doc.isEditableImage) {
-                    return;
-                }
-                scope.display.editedDocument = doc;
-                setTimeout(() => {
-                    scope.display.compressionReady = true;
-                    scope.$apply();
-                }, 350);
+                // void
             };
 
             scope.closeCompression = () => {
-                scope.display.editedDocument = undefined;
-                scope.display.compressionReady = false;
+                // void
             }
 
 
