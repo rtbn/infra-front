@@ -31,6 +31,8 @@ export class VideoUploadService {
             throw new Error("Invalid video filename.");
         }
         
+        let uploadUrl = "/video/upload?captation="+captation;
+
         // Add some metadata for the event layer.
         let formData = VideoEventTrackerService.asFormData();
         formData.append("file", file, filename);
@@ -38,8 +40,10 @@ export class VideoUploadService {
         formData.append("captation", ''+captation);
         if( duration ) {
             formData.append("duration", ''+duration);
+            uploadUrl += "&duration="+duration;
         }
-        const uploadRes = await axios.post("/video/upload", formData);
+        
+        const uploadRes = await axios.post(uploadUrl, formData);
         if(uploadRes.status==202){
             const id = uploadRes.data.processid;
             console.log("[VideoUploadService] start fetching status for :", id, uploadRes.data);

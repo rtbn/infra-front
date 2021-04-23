@@ -64,7 +64,8 @@ export interface VideoScope {
         highlights: Document[]
     };
     visibility: "public" | "protected" | "external";
-    viewMode: MediaLibraryView
+    viewMode: MediaLibraryView;
+    maxWeight: string;
 
     updatePreview():void;
     applyHtml():void;
@@ -114,6 +115,12 @@ export interface VideoScope {
     cancel():void;
     $broadcast:any;
 }
+
+const VALID_UPLOAD_FORMATS = [
+    "video/mp4",        // .mp4
+    "video/quicktime",  // .mov
+    "video/x-msvideo"   // .avi
+];
 
 export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUploadService', function ($timeout, $filter, VideoUploadService:VideoUploadService) {
     return {
@@ -180,6 +187,15 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
             };
             Me.hasWorkflowRight("video.view") //hack to start and load workflow rights
             .then( hasIt => { hasVideoView = hasIt; } ); // Make the visible() property reactive.
+            
+            // Get file upload limits
+            scope.maxWeight = "50";
+            http().get('/video/conf/public')
+            .done((response) => {
+                if( response && response["max-videosize-mbytes"] ) {
+                    scope.maxWeight = response["max-videosize-mbytes"];
+                }
+            });
             const emitDisplayEvent = () =>{
                 console.log("Broadcast display event displayVideoRecorder...")
                 scope.$broadcast('displayVideoRecorder', {});
@@ -648,7 +664,23 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
                 if (!files) {
                     files = scope.upload.files;
                 }
+
+                // Check weight limits and file formats
+                for( var i = 0; i < files.length; i++ ) {
+                    if( Math.round(files[i].size/(1024*1024)) > Number(scope.maxWeight) ) {
+                        notify.error("video.upload.error.weight");
+                        scope.upload.files = undefined;
+                        return;
+                    }
+
+                    if( VALID_UPLOAD_FORMATS.indexOf(files[i].type) === -1 ) {
+                        notify.error("video.upload.error.format");
+                        scope.upload.files = undefined;
+                        return;
+                    }
+                }
                 
+                // Upload videos
                 for (var i = 0; i < files.length; i++) {
 					const doc = new Document();
 					scope.upload.documents.push(doc);
@@ -669,7 +701,7 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
                         doc.uploadStatus = "failed";
                         console.warn(err);
                     })
-                    .finally( () => {
+                    ["finally"]( () => {
                         scope.$apply();
                     });
                     break; // Only 1 video can be uploaded at a time.
