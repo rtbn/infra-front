@@ -30,13 +30,26 @@
         </ul>
     </div>
 </div>
-<div class="row">
-    <div class="six cell">
+<div class="row zero-mobile">
+    <div class="one cell">&nbsp;<!-- Marge d'Alizée, voir #44014 --></div>
+
+    <div class="five cell">
         <em class="small-text"><i18n>video.upload.supported.formats</i18n></em>
         <br>
         <em class="small-text"><i18n>video.upload.supported.weight</i18n></em>
     </div>
     <div class="six cell">
+        <button class="right-magnet" ng-click="confirmImport()" type="button"><i18n>import</i18n></button>
+        <button class="right-magnet cancel" ng-click="cancelUpload()" type="button"><i18n>cancel</i18n></button>
+    </div>
+</div>
+<div class="twelve row zero-desktop">
+    <p>
+        <em class="small-text"><i18n>video.upload.supported.formats</i18n></em>
+        <br>
+        <em class="small-text"><i18n>video.upload.supported.weight</i18n></em>
+    </p>
+    <div class="twelve cell">
         <button class="right-magnet" ng-click="confirmImport()" type="button"><i18n>import</i18n></button>
         <button class="right-magnet cancel" ng-click="cancelUpload()" type="button"><i18n>cancel</i18n></button>
     </div>

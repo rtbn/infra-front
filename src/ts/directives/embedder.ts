@@ -169,12 +169,17 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
                 visible: () => true,
                 worflowKey: "video.view"
             };
+
+            let hasVideoUpload = false;
             const HEADER_UPLOAD: Header = {
                 i18Key: `${$(window).width() <= ui.breakpoints.tablette?"video.header.upload.mobile":"video.header.upload"}`,
                 template: "entcore/video/upload",
-                visible: () => true,
-                worflowKey: "workspace.create"
+                visible: () => hasVideoUpload,
+                worflowKey: "video.upload"
             }
+            Me.hasWorkflowRight("video.upload")
+            .then( hasIt => { hasVideoUpload = true; } ); // Make the visible() property reactive.
+
             let hasVideoView = false;
             const HEADER_RECORD: Header = {
                 i18Key: `${$(window).width() <= ui.breakpoints.tablette?'video.header.record.mobile':'video.header.record'}`,
@@ -232,8 +237,7 @@ export let embedder = ng.directive('embedder', ['$timeout', '$filter', 'VideoUpl
 
             scope.getClassOf = function( h: Header ): any {
                 return {
-                    "beta-feature": (h===HEADER_RECORD || h===HEADER_UPLOAD),
-                    "reduced-font-size": true
+                    "beta-feature": (h===HEADER_RECORD || h===HEADER_UPLOAD)
                 }
             }
 
